@@ -1,0 +1,1 @@
+adafruit-nrfutil dfu genpkg --application ../build/zephyr/zephyr.bin --dev-revision 52840 --dev-type 0x0052 ../dfu.zip

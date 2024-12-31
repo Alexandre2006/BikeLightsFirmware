@@ -83,20 +83,18 @@
     pinctrl-names = "default", "sleep";
 };
 
+&reg1 {
+	regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+};
+
+&reg0 {
+    status = "okay";
+};
+
 zephyr_udc0: &usbd {
 	compatible = "nordic,nrf-usbd";
 	status = "okay";
 	cdc_acm_uart0: cdc_acm_uart0 {
 		compatible = "zephyr,cdc-acm-uart";
 	};
-};
-
-/* configure REG/REG1 in DC/DC mode */
-&reg1 {
-	regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
-};
-
-/* enable REG0 (HV mode) */
-&reg0 {
-    status = "okay";
 };
