@@ -1,18 +1,13 @@
-identifier: nice_nano_v2/nice_nano_v2
+identifier: nice_nano_v2/nrf52840
 name: nice!nano v2
-vendor: knockoff
+vendor: nice!
 type: mcu
 arch: arm
 ram: 256
 flash: 1024
-toolchain:
-  - zephyr
-  - gnuarmemb
-  - xtools
 supported:
   - adc
   - usb_device
-  - usb_cdc
   - ble
   - pwm
   - spi
@@ -20,4 +15,4 @@ supported:
   - counter
   - netif:openthread
   - gpio
-
+supported: []
