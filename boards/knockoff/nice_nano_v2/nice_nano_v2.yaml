@@ -1,0 +1,23 @@
+identifier: nice_nano_v2/nice_nano_v2
+name: nice!nano v2
+vendor: knockoff
+type: mcu
+arch: arm
+ram: 256
+flash: 1024
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - adc
+  - usb_device
+  - usb_cdc
+  - ble
+  - pwm
+  - spi
+  - watchdog
+  - counter
+  - netif:openthread
+  - gpio
+
