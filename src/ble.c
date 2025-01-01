@@ -1,4 +1,5 @@
-#include "ble_log.h"
+#include "ble.h"
+#include "dfu.h"
 
 #include <sys/_intsup.h>
 #include <zephyr/bluetooth/gatt.h>
@@ -6,6 +7,10 @@
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_backend_ble.h>
+
+// Custom Services
+BT_GATT_SERVICE_DEFINE(dfu_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_DFU_SERVICE),
+ BT_GATT_CHARACTERISTIC(BT_UUID_DFU_CHAR, BT_GATT_CHRC_WRITE_WITHOUT_RESP, BT_GATT_PERM_WRITE, NULL, write_dfu, NULL));
 
 // Register log module
 LOG_MODULE_REGISTER(ble_log);

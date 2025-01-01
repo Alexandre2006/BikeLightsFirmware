@@ -1,4 +1,4 @@
-#include "ble_log.h"
+#include "ble.h"
 #include <zephyr/kernel.h>
 
 int main(void)
