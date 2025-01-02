@@ -20,7 +20,7 @@
     BT_UUID_128_ENCODE(0x7468696e, 0x6b61, 0x6c65, 0x7863, 0x6f6e66696701) // Characteristic - All - Mode (Off / Rear Only / All On / Hazard)
 
 #define BT_UUID_CONFIG_BLINKING_SPEED_CHAR_VAL \
-    BT_UUID_128_ENCODE(0x7468696e, 0x6b61, 0x6c65, 0x7863, 0x6f6e66696702) // Characteristic - All - Blinking Speed
+    BT_UUID_128_ENCODE(0x7468696e, 0x6b61, 0x6c65, 0x7863, 0x6f6e66696702) // Characteristic - All - Blinking Speed - BPM (Blinks per minute)
 
 #define BT_UUID_CONFIG_HEADLIGHT_BRIGTHNESS_CHAR_VAL \
     BT_UUID_128_ENCODE(0x7468696e, 0x6b61, 0x6c65, 0x7863, 0x6f6e66696703) // Characteristic - Headlight - Brightness

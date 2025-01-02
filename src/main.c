@@ -1,8 +1,10 @@
 #include "ble.h"
+#include "config.h"
 #include <zephyr/kernel.h>
 
 int main(void)
 {
+        initialize_settings();
         start_ble();
 
         int i = 0;

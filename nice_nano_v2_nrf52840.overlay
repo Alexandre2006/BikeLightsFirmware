@@ -35,6 +35,7 @@
 	pinctrl-1 = <&pwm0_sleep>;
 	pinctrl-names = "default", "sleep";
 };
+
 &pwm0_default {
     group1 {
         psels = <NRF_PSEL(PWM_OUT0, 0, 15)>,

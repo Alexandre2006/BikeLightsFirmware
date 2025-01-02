@@ -2,6 +2,10 @@
 # Build directory
 build*/
 
+# --- clangd ---
+.clangd/
+.cache
+
 # ---- macOS ----
 # General
 .DS_Store
