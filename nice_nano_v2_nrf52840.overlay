@@ -15,16 +15,20 @@
     pwmleds {
         compatible = "pwm-leds";
         headlights: pwm_led_0 {
-            pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+            label = "headlights";
+            pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         };
         brake_lights: pwm_led_1 {
-            pwms = <&pwm0 1 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+            label = "brake_lights";
+            pwms = <&pwm0 1 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         };
         indicator_left: pwm_led_2 {
-            pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+            label = "indicator_left";
+            pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         };
         indicator_right: pwm_led_3 {
-            pwms = <&pwm0 2 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+            label = "indicator_right";
+            pwms = <&pwm0 3 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         };
     };
 };
