@@ -13,6 +13,23 @@ LOG_MODULE_REGISTER(led);
 #define LED_PWM_NODE_ID	DT_COMPAT_GET_ANY_STATUS_OKAY(pwm_leds) // 0: Headlight, 1: Brake, 2: Left Blinker, 3: Right Blinker
 const struct device *led_pwm;
 
+struct light_config received_config = {
+    .mode = GLOBAL_OFF,
+    .blinking_speed = 500,
+    .headlight_brightness = 100,
+    .brake_idle_brightness = 50,
+    .brake_braking_brightness = 100,
+    .blinker_brightness = 100,
+    .brake_mode = BRAKE_IDLE,
+    .blinker_mode = BLINKER_OFF,
+};
+
+atomic_t left_blinker_on = ATOMIC_INIT(0);
+atomic_t right_blinker_on = ATOMIC_INIT(0);
+atomic_t hazards_on = ATOMIC_INIT(0);
+bool last_blinker_state = false;
+static K_TIMER_DEFINE(blink_timer, NULL, NULL);
+
 int initialize_leds(void) {
     led_pwm = DEVICE_DT_GET(LED_PWM_NODE_ID);
 
@@ -53,63 +70,74 @@ void updateBrake(struct light_config config) {
     }
 }
 
-void updateBlinkers(struct light_config config) {
-    if (config.mode == GLOBAL_OFF || config.blinker_mode == BLINKER_OFF) {
-        // Turn off blinkers
-        led_set_brightness(led_pwm, 2, 0);
-        led_set_brightness(led_pwm, 3, 0);
-        LOG_INF("Blinkers off");
-    } else if (config.blinker_mode == BLINKER_LEFT) {
-        // Set brightness for left blinker & blink
-        led_set_brightness(led_pwm, 2, config.blinker_brightness);
-        led_blink(led_pwm, 2, config.blinking_speed, config.blinking_speed);
-
-        // Turn off right blinker
-        led_set_brightness(led_pwm, 3, 0);
-    } else if (config.blinker_mode == BLINKER_RIGHT) {
-        // Set brightness for the right blinker & blink
-        led_set_brightness(led_pwm, 3, config.blinker_brightness);
-        led_blink(led_pwm, 3, config.blinking_speed, config.blinking_speed);
-
-        // Turn off left blinker
-        led_set_brightness(led_pwm, 2, 0);
-    }
-}
-
-void updateHazards(struct light_config config) {
-    // Set brightness of brakes and blinkers
-    led_set_brightness(led_pwm, 1, config.brake_braking_brightness);
-    led_set_brightness(led_pwm, 2, config.blinker_brightness);
-    led_set_brightness(led_pwm, 3, config.blinker_brightness);
-
-    // Blink all lights
-    led_blink(led_pwm, 1, config.blinking_speed, config.blinking_speed);
-    led_blink(led_pwm, 2, config.blinking_speed, config.blinking_speed);
-    led_blink(led_pwm, 3, config.blinking_speed, config.blinking_speed);
-
-    LOG_INF("Hazards on (brake brightness: %d, blinker brightness: %d, speed: %d)", config.brake_braking_brightness, config.blinker_brightness, config.blinking_speed);
-}
-
 void config_receiver_thread() {
-    struct light_config received_config;
-
     while (true) {
         // Wait for update
         k_msgq_get(&config_msgq, &received_config, K_FOREVER);
 
-        LOG_INF("RECEIVED CHANGE");
-
-        // Update headlight
+        // Update headlights
         updateHeadlight(received_config);
 
-        // Update rear lights
-        if (received_config.blinker_mode == BLINKER_HAZARD) {
-            updateHazards(received_config);
-        } else {
+        // Update brakes (overriden by hazards)
+        if (!atomic_get(&hazards_on)) {
             updateBrake(received_config);
-            updateBlinkers(received_config);
-        }    
+        }
+
+        // Update blinking lights
+        atomic_set(&left_blinker_on, received_config.blinker_mode == BLINKER_LEFT);
+        atomic_set(&right_blinker_on, received_config.blinker_mode == BLINKER_RIGHT);
+        atomic_set(&hazards_on, received_config.blinker_mode == BLINKER_HAZARD);
+
+        // Log changes (blinking lights)
+        if (atomic_get(&left_blinker_on)) {
+            LOG_INF("Left blinker on");
+        } else {
+            LOG_INF("Left blinker off");
+        }
+
+        if (atomic_get(&right_blinker_on)) {
+            LOG_INF("Right blinker on");
+        } else {
+            LOG_INF("Right blinker off");
+        }
+
+        if (atomic_get(&hazards_on)) {
+            LOG_INF("Hazards on");
+        } else {
+            LOG_INF("Hazards off");
+        }
+    }
+}
+
+void blinking_thread() {
+    while (true) {
+        // Sync with config receiver
+        k_timer_status_sync(&blink_timer);
+        k_timer_start(&blink_timer, K_MSEC(received_config.blinking_speed), K_FOREVER);
+
+        // Update left blinkers (on/hazards)
+        if (atomic_get(&left_blinker_on) || atomic_get(&hazards_on)) {
+            led_set_brightness(led_pwm, 2, last_blinker_state ? received_config.blinker_brightness : 0);
+        } else {
+            led_set_brightness(led_pwm, 2, 0);
+        }
+
+        // Update right blink (on/hazards)
+        if (atomic_get(&right_blinker_on) || atomic_get(&hazards_on)) {
+            led_set_brightness(led_pwm, 3, last_blinker_state ? received_config.blinker_brightness : 0);
+        } else {
+            led_set_brightness(led_pwm, 3, 0);
+        }
+
+        // Update brakes (hazards)
+        if (atomic_get(&hazards_on)) {
+            led_set_brightness(led_pwm, 1, last_blinker_state ? received_config.blinker_brightness : 0);
+        }
+
+        // Update last blinker state
+        last_blinker_state = !last_blinker_state;
     }
 }
 
 K_THREAD_DEFINE(config_receiver_thread_id, 1024, config_receiver_thread, NULL, NULL, NULL, 10, 0, 0);
+K_THREAD_DEFINE(blinking_thread_id, 1024, blinking_thread, NULL, NULL, NULL, 10, 0, 0);

@@ -6,7 +6,7 @@
 LOG_MODULE_REGISTER(config);
 
 struct light_config config = {.mode = GLOBAL_OFF,
-                              .blinking_speed = 60,
+                              .blinking_speed = 500,
                               .headlight_brightness = 100,
                               .brake_idle_brightness = 50,
                               .brake_braking_brightness = 100,
@@ -25,7 +25,6 @@ static void notify_config_change(void) {
   k_mutex_lock(&config_mutex, K_FOREVER);
   k_msgq_put(&config_msgq, &config, K_NO_WAIT);
   k_mutex_unlock(&config_mutex);
-  LOG_INF("NOTIFIED CHANGE");
 }
 
 // Handlers for Settings API
@@ -200,7 +199,7 @@ static int handle_set(const char *name, size_t len, settings_read_cb read_cb,
     k_mutex_unlock(&config_mutex);
     notify_config_change();
     return 0;
-  } else if (strcmp(name, "brake_mode")) {
+  } else if (strcmp(name, "brake_mode") == 0) {
     err = read_cb(cb_arg, &config.brake_mode, sizeof(config.brake_mode));
     if (err < 0) {
       k_mutex_unlock(&config_mutex);
